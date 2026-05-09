@@ -1,0 +1,66 @@
+buildscript {
+
+    ext.kotlin_version = '2.0.0'
+
+    repositories {
+
+        google()
+
+        mavenCentral()
+    }
+
+    dependencies {
+
+        // =============================
+        // ANDROID GRADLE
+        // =============================
+        classpath
+        'com.android.tools.build:gradle:8.5.0'
+
+        // =============================
+        // KOTLIN
+        // =============================
+        classpath
+        "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        // =============================
+        // GOOGLE SERVICES
+        // FIREBASE
+        // =============================
+        classpath
+        'com.google.gms:google-services:4.4.2'
+    }
+}
+
+// =============================
+// ALL PROJECTS
+// =============================
+allprojects {
+
+    repositories {
+
+        google()
+
+        mavenCentral()
+    }
+}
+
+// =============================
+// BUILD DIRECTORY
+// =============================
+rootProject.buildDir =
+"../build"
+
+subprojects {
+
+    project.buildDir =
+    "${rootProject.buildDir}/${project.name}"
+}
+
+// =============================
+// CLEAN TASK
+// =============================
+tasks.register("clean", Delete) {
+
+    delete rootProject.buildDir
+}

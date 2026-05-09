@@ -1,0 +1,107 @@
+plugins {
+
+    id "com.android.application"
+
+    id "kotlin-android"
+
+    id "dev.flutter.flutter-gradle-plugin"
+
+    // =============================
+    // FIREBASE
+    // =============================
+    id "com.google.gms.google-services"
+}
+
+android {
+
+    namespace = "com.africore.app"
+
+    compileSdk = flutter.compileSdkVersion
+
+    ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+
+        // =============================
+        // APP ID
+        // =============================
+        applicationId = "com.africore.app"
+
+        // =============================
+        // SDK
+        // =============================
+        minSdk = 21
+
+        targetSdk = flutter.targetSdkVersion
+
+        versionCode = flutterVersionCode.toInteger()
+
+        versionName = flutterVersionName
+
+        // =============================
+        // MULTIDEX
+        // =============================
+        multiDexEnabled true
+    }
+
+    // =============================
+    // JAVA VERSION
+    // =============================
+    compileOptions {
+
+        sourceCompatibility =
+                JavaVersion.VERSION_17
+
+        targetCompatibility =
+                JavaVersion.VERSION_17
+    }
+
+    // =============================
+    // KOTLIN VERSION
+    // =============================
+    kotlinOptions {
+
+        jvmTarget = "17"
+    }
+
+    // =============================
+    // BUILD TYPES
+    // =============================
+    buildTypes {
+
+        release {
+
+            signingConfig =
+                    signingConfigs.debug
+
+            minifyEnabled false
+
+            shrinkResources false
+        }
+    }
+}
+
+// =============================
+// FLUTTER
+// =============================
+flutter {
+
+    source = "../.."
+}
+
+// =============================
+// DEPENDENCIES
+// =============================
+dependencies {
+
+    implementation
+    "androidx.multidex:multidex:2.0.1"
+
+    implementation platform(
+            "com.google.firebase:firebase-bom:33.1.0"
+    )
+
+    implementation
+    "com.google.firebase:firebase-messaging"
+
+}

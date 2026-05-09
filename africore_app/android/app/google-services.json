@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "473223016835",
+    "project_id": "africore-33060",
+    "storage_bucket": "africore-33060.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:473223016835:android:2aa31c803c9176eed706b6",
+        "android_client_info": {
+          "package_name": "com.africore.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs-G3OAQTerjbPOnNfXmneYFMQyY3UHI0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
