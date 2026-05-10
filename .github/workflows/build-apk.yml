@@ -2,14 +2,15 @@ name: Build Africore APK
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -21,20 +22,21 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
+          flutter-version: 3.22.2
+          channel: stable
 
-      - name: Flutter doctor
+      - name: Flutter Doctor
         run: flutter doctor -v
 
-      - name: Get dependencies
+      - name: Install dependencies
         working-directory: africore_app
         run: flutter pub get
 
-      - name: Clean build
+      - name: Clean project
         working-directory: africore_app
         run: flutter clean
 
-      - name: Build APK (release)
+      - name: Build APK
         working-directory: africore_app
         run: flutter build apk --release
 
