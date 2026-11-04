@@ -1,49 +1,28 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../core/services/notification_service.dart';
 
-class NotificationProvider
-    extends ChangeNotifier {
-
-  final NotificationService service =
-  NotificationService();
+class NotificationProvider extends ChangeNotifier {
+  final NotificationService service = NotificationService();
 
   bool isLoading = false;
+  List<dynamic> notifications = <dynamic>[];
 
-  List notifications = [];
-
-  // =============================
-  // LOAD NOTIFICATIONS
-  // =============================
   Future<void> loadNotifications() async {
-
     isLoading = true;
     notifyListeners();
-
     try {
-
-      final data =
-      await service.getNotifications();
-
-      notifications = data;
-
-    } catch (e) {
-
-      debugPrint(e.toString());
-
+      notifications = await service.getNotifications();
+    } catch (error) {
+      debugPrint('Notification load failed: $error');
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    isLoading = false;
-    notifyListeners();
   }
 
-  // =============================
-  // ADD REAL-TIME NOTIFICATION
-  // =============================
-  void addNotification(Map data) {
-
+  void addNotification(Map<String, dynamic> data) {
     notifications.insert(0, data);
-
     notifyListeners();
   }
 }
