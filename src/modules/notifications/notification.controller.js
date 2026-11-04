@@ -1,51 +1,25 @@
-/**
- * ============================================
- * 📩 NOTIFICATION CONTROLLER
- * ============================================
- */
-
 const {
     getUserNotifications,
     markAsRead
 } = require("./notification.service");
 
-// =============================
-// GET NOTIFICATIONS
-// =============================
 const fetchNotifications = async (req, res) => {
     try {
-        const userId = req.user.id;
-
-        const notifications = await getUserNotifications(userId);
-
-        return res.json(notifications);
-
+        const notifications = await getUserNotifications(req.user._id);
+        return res.status(200).json({ notifications });
     } catch (error) {
-        return res.status(500).json({
-            message: "Failed to fetch notifications"
-        });
+        return res.status(500).json({ message: "Failed to fetch notifications" });
     }
 };
 
-// =============================
-// MARK READ
-// =============================
 const readNotification = async (req, res) => {
     try {
-        const { id } = req.params;
-
-        const updated = await markAsRead(id);
-
-        return res.json(updated);
-
+        const updated = await markAsRead(req.params.id, req.user._id);
+        if (!updated) return res.status(404).json({ message: "Notification not found" });
+        return res.status(200).json(updated);
     } catch (error) {
-        return res.status(400).json({
-            message: "Failed to update"
-        });
+        return res.status(400).json({ message: "Failed to update notification" });
     }
 };
 
-module.exports = {
-    fetchNotifications,
-    readNotification
-};
+module.exports = { fetchNotifications, readNotification };
