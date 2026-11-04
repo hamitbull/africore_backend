@@ -7,7 +7,7 @@ class ApiService {
   ApiService._internal()
       : dio = Dio(
           BaseOptions(
-            baseUrl: ApiEndpoints.baseUrl,
+            baseUrl: _normalizedBaseUrl,
             connectTimeout: const Duration(seconds: 20),
             receiveTimeout: const Duration(seconds: 30),
             sendTimeout: const Duration(seconds: 30),
@@ -15,17 +15,25 @@ class ApiService {
           ),
         );
 
-  static final ApiService instance = ApiService._internal();
+  static String get _normalizedBaseUrl {
+    final value = ApiEndpoints.baseUrl.trim();
+    if (value.isEmpty) return '';
+    return '${value.replaceFirst(RegExp(r'/+$'), '')}/';
+  }
 
+  static final ApiService instance = ApiService._internal();
   final Dio dio;
 
   void _ensureConfigured() {
-    if (ApiEndpoints.baseUrl.isEmpty) {
+    if (ApiEndpoints.baseUrl.trim().isEmpty) {
       throw StateError(
         'API address is not configured. Build with --dart-define=API_BASE_URL=https://your-server/api',
       );
     }
   }
+
+  String _relativePath(String path) =>
+      path.startsWith('/') ? path.substring(1) : path;
 
   Future<Options> authOptions() async {
     final token = await StorageService.instance.getToken();
@@ -41,7 +49,7 @@ class ApiService {
   }) async {
     _ensureConfigured();
     return dio.get(
-      path,
+      _relativePath(path),
       options: authenticated ? await authOptions() : null,
     );
   }
@@ -53,7 +61,7 @@ class ApiService {
   }) async {
     _ensureConfigured();
     return dio.post(
-      path,
+      _relativePath(path),
       data: data,
       options: authenticated ? await authOptions() : null,
     );
@@ -66,7 +74,7 @@ class ApiService {
   }) async {
     _ensureConfigured();
     return dio.put(
-      path,
+      _relativePath(path),
       data: data,
       options: authenticated ? await authOptions() : null,
     );
