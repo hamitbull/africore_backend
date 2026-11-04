@@ -1,20 +1,9 @@
-/**
- * ============================================
- * 📊 AFRICORE OS - TRANSACTION ROUTES
- * ============================================
- */
-
 const express = require("express");
 const router = express.Router();
 
 const transactionController = require("./transaction.controller");
+const authMiddleware = require("../../middleware/auth.middleware");
 
-// =============================
-// GET USER TRANSACTIONS
-// =============================
-router.get("/:userId", transactionController.getUserTransactions);
+router.get("/me", authMiddleware, transactionController.getMyTransactions);
 
-// =============================
-// EXPORT
-// =============================
 module.exports = router;
