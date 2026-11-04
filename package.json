@@ -4,24 +4,14 @@
   "description": "AFRICORE OS - Super App Backend (Fintech + Mini App Platform)",
   "main": "src/main.js",
   "type": "commonjs",
-
   "scripts": {
     "start": "node src/main.js",
-    "dev": "nodemon src/main.js"
+    "dev": "nodemon src/main.js",
+    "check": "find src -type f -name '*.js' -exec node --check {} \\;"
   },
-
-  "keywords": [
-    "africore",
-    "fintech",
-    "superapp",
-    "wallet",
-    "miniapps",
-    "afrobox"
-  ],
-
+  "keywords": ["africore", "fintech", "superapp", "wallet", "miniapps", "afrobox"],
   "author": "AFRICORE TEAM",
   "license": "MIT",
-
   "dependencies": {
     "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
@@ -32,7 +22,6 @@
     "mongoose": "^7.6.0",
     "uuid": "^9.0.1"
   },
-
   "devDependencies": {
     "nodemon": "^3.0.2"
   }
