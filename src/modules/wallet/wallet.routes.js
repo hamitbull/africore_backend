@@ -1,37 +1,16 @@
-/**
- * ============================================
- * 💰 AFRICORE OS - WALLET ROUTES
- * ============================================
- * Defines wallet API endpoints
- */
-
 const express = require("express");
 const router = express.Router();
 
-// Import controller
 const walletController = require("./wallet.controller");
+const authMiddleware = require("../../middleware/auth.middleware");
+const adminMiddleware = require("../../middleware/admin.middleware");
 
-// =============================
-// CREATE WALLET
-// =============================
-router.post("/create", walletController.createUserWallet);
+// Users can only read their own wallet.
+router.get("/me", authMiddleware, walletController.getMyWallet);
 
-// =============================
-// GET WALLET BALANCE
-// =============================
-router.get("/:userId", walletController.getWalletBalance);
+// Administrative wallet operations require both authentication and admin role.
+router.post("/create", authMiddleware, adminMiddleware, walletController.createUserWallet);
+router.post("/credit", authMiddleware, adminMiddleware, walletController.creditUserWallet);
+router.post("/debit", authMiddleware, adminMiddleware, walletController.debitUserWallet);
 
-// =============================
-// CREDIT WALLET
-// =============================
-router.post("/credit", walletController.creditUserWallet);
-
-// =============================
-// DEBIT WALLET
-// =============================
-router.post("/debit", walletController.debitUserWallet);
-
-// =============================
-// EXPORT ROUTER
-// =============================
 module.exports = router;
