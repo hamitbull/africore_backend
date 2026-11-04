@@ -7,7 +7,7 @@ import '../miniapps/miniapp_store_screen.dart';
 import '../notifications/notification_screen.dart';
 import '../wallet/transfer_screen.dart';
 import '../wallet/wallet_screen.dart';
-import 'app_drawer.dart';
+import '../main/app_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
