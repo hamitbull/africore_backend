@@ -1,280 +1,85 @@
-import 'package:dio/dio.dart';
-
+import '../config/api_endpoints.dart';
+import 'api_service.dart';
 import 'storage_service.dart';
 
 class AuthService {
+  final ApiService _api = ApiService.instance;
+  final StorageService _storage = StorageService.instance;
 
-  final Dio dio = Dio(
-    BaseOptions(
-      baseUrl: "https://yourdomain.com/api",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-    ),
-  );
-
-  final StorageService storageService =
-      StorageService();
-
-  // =============================
-  // REGISTER USER
-  // =============================
-  Future<Map<String, dynamic>>
-  register({
-
+  Future<Map<String, dynamic>> register({
     required String fullName,
-
     required String phone,
-
     required String email,
-
     required String password,
-
   }) async {
-
-    try {
-
-      final response = await dio.post(
-
-        "/auth/register",
-
-        data: {
-
-          "fullName": fullName,
-
-          "phone": phone,
-
-          "email": email,
-
-          "password": password
-
-        },
-      );
-
-      // =============================
-      // SAVE JWT TOKEN
-      // =============================
-      final token =
-      response.data["token"];
-
-      if (token != null) {
-
-        await storageService.saveToken(
-          token,
-        );
-
-      }
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Registration failed",
-      );
-
+    final response = await _api.post(ApiEndpoints.register, {
+      'name': fullName.trim(),
+      'phone': phone.trim(),
+      'email': email.trim(),
+      'password': password,
+    });
+    final data = Map<String, dynamic>.from(response.data as Map);
+    final token = data['token'] as String?;
+    if (token != null && token.isNotEmpty) {
+      await _storage.saveToken(token);
     }
+    return data;
   }
 
-  // =============================
-  // LOGIN USER
-  // =============================
-  Future<Map<String, dynamic>>
-  login({
-
+  Future<Map<String, dynamic>> login({
     required String phone,
-
     required String password,
-
   }) async {
-
-    try {
-
-      final response = await dio.post(
-
-        "/auth/login",
-
-        data: {
-
-          "phone": phone,
-
-          "password": password
-
-        },
-      );
-
-      // =============================
-      // SAVE JWT TOKEN
-      // =============================
-      final token =
-      response.data["token"];
-
-      if (token != null) {
-
-        await storageService.saveToken(
-          token,
-        );
-
-      }
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Login failed",
-      );
-
+    final response = await _api.post(ApiEndpoints.login, {
+      'phone': phone.trim(),
+      'password': password,
+    });
+    final data = Map<String, dynamic>.from(response.data as Map);
+    final token = data['token'] as String?;
+    if (token == null || token.isEmpty) {
+      throw StateError('Server did not return a login token.');
     }
+    await _storage.saveToken(token);
+    return data;
   }
 
-  // =============================
-  // LOGOUT USER
-  // =============================
-  Future<void> logout() async {
+  Future<void> logout() => _storage.clearToken();
 
-    await storageService.clearToken();
-  }
+  Future<String?> getToken() => _storage.getToken();
 
-  // =============================
-  // GET SAVED TOKEN
-  // =============================
-  Future<String?> getToken() async {
-
-    return await storageService.getToken();
-  }
-
-  // =============================
-  // CHECK LOGIN STATUS
-  // =============================
   Future<bool> isLoggedIn() async {
-
-    final token =
-    await storageService.getToken();
-
-    return token != null;
+    final token = await _storage.getToken();
+    return token != null && token.isNotEmpty;
   }
 
-  // =============================
-  // FETCH CURRENT USER
-  // =============================
-  Future<Map<String, dynamic>>
-  getProfile() async {
-
-    try {
-
-      final token =
-      await storageService.getToken();
-
-      final response = await dio.get(
-
-        "/auth/profile",
-
-        options: Options(
-
-          headers: {
-            "Authorization":
-            "Bearer $token"
-          },
-        ),
-      );
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Failed to load profile",
-      );
-
-    }
+  Future<Map<String, dynamic>> getProfile() async {
+    final response = await _api.get(
+      ApiEndpoints.profile,
+      authenticated: true,
+    );
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
-  // =============================
-  // UPDATE PROFILE
-  // =============================
-  Future<Map<String, dynamic>>
-  updateProfile({
-
+  Future<Map<String, dynamic>> updateProfile({
     required String fullName,
-
     required String email,
-
   }) async {
-
-    try {
-
-      final token =
-      await storageService.getToken();
-
-      final response = await dio.put(
-
-        "/auth/profile",
-
-        data: {
-
-          "fullName": fullName,
-
-          "email": email
-
-        },
-
-        options: Options(
-
-          headers: {
-            "Authorization":
-            "Bearer $token"
-          },
-        ),
-      );
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Failed to update profile",
-      );
-
-    }
+    final response = await _api.put(
+      ApiEndpoints.profile,
+      {'name': fullName.trim(), 'email': email.trim()},
+      authenticated: true,
+    );
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
-  // =============================
-  // VERIFY OTP
-  // =============================
-  Future<Map<String, dynamic>>
-  verifyOTP({
-
+  Future<Map<String, dynamic>> verifyOTP({
     required String phone,
-
     required String otp,
-
   }) async {
-
-    try {
-
-      final response = await dio.post(
-
-        "/auth/verify-otp",
-
-        data: {
-
-          "phone": phone,
-
-          "otp": otp
-
-        },
-      );
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "OTP verification failed",
-      );
-
-    }
+    final response = await _api.post('/auth/verify-otp', {
+      'phone': phone.trim(),
+      'otp': otp.trim(),
+    });
+    return Map<String, dynamic>.from(response.data as Map);
   }
 }
