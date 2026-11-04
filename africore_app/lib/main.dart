@@ -7,11 +7,12 @@ import 'providers/auth_provider.dart';
 import 'providers/notification_service.dart';
 import 'providers/wallet_provider.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/main/bottom_nav_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase Messaging is optional at runtime on devices without Google services.
+  // Firebase Messaging may not be available on devices without Google services.
   try {
     await Firebase.initializeApp();
     await PushNotificationService.initialize();
@@ -63,8 +64,34 @@ class AfricoreApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const LoginScreen(),
+        home: const AuthGate(),
       ),
     );
+  }
+}
+
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => context.read<AuthProvider>().restoreSession());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    if (auth.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return auth.isLoggedIn ? const BottomNavScreen() : const LoginScreen();
   }
 }
