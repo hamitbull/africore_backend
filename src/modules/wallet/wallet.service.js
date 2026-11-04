@@ -1,103 +1,52 @@
-/**
- * ============================================
- * 💰 AFRICORE OS - WALLET SERVICE
- * ============================================
- * Handles all wallet business logic
- */
-
 const Wallet = require("../../database/models/Wallet");
+const {
+    creditWalletWithLedger,
+    debitWalletWithLedger
+} = require("./ledger.service");
 
-// =============================
-// CREATE WALLET (AUTO ON USER REGISTER)
-// =============================
 const createWallet = async (userId) => {
+    if (!userId) throw new Error("userId is required.");
     const existingWallet = await Wallet.findOne({ userId });
+    if (existingWallet) return existingWallet;
 
-    if (existingWallet) {
-        return existingWallet;
+    try {
+        return await Wallet.create({
+            userId,
+            balance: 0,
+            currency: "NGN"
+        });
+    } catch (error) {
+        // A concurrent registration may have created the unique wallet first.
+        if (error.code === 11000) {
+            const wallet = await Wallet.findOne({ userId });
+            if (wallet) return wallet;
+        }
+        throw error;
     }
-
-    const wallet = await Wallet.create({
-        userId,
-        balance: 0,
-        currency: "NGN"
-    });
-
-    return wallet;
 };
 
-// =============================
-// GET WALLET BALANCE
-// =============================
 const getBalance = async (userId) => {
     const wallet = await Wallet.findOne({ userId });
-
-    if (!wallet) {
-        throw new Error("Wallet not found");
-    }
-
+    if (!wallet) throw new Error("Wallet not found.");
     return {
-        balance: wallet.balance,
-        currency: wallet.currency
+        balance: Number(wallet.balance || 0),
+        currency: wallet.currency || "NGN"
     };
 };
 
-// =============================
-// CREDIT WALLET (ADD MONEY)
-// =============================
-const creditWallet = async (userId, amount) => {
-    if (amount <= 0) {
-        throw new Error("Invalid amount");
-    }
+// These administrative adjustments still go through the same auditable ledger.
+const creditWallet = async (userId, amount) => creditWalletWithLedger({
+    userId,
+    amount,
+    description: "Administrative wallet credit",
+    provider: "admin-adjustment"
+});
 
-    const wallet = await Wallet.findOne({ userId });
+const debitWallet = async (userId, amount) => debitWalletWithLedger({
+    userId,
+    amount,
+    description: "Administrative wallet debit",
+    provider: "admin-adjustment"
+});
 
-    if (!wallet) {
-        throw new Error("Wallet not found");
-    }
-
-    wallet.balance += amount;
-    await wallet.save();
-
-    return {
-        message: "Wallet credited successfully",
-        newBalance: wallet.balance
-    };
-};
-
-// =============================
-// DEBIT WALLET (REMOVE MONEY)
-// =============================
-const debitWallet = async (userId, amount) => {
-    if (amount <= 0) {
-        throw new Error("Invalid amount");
-    }
-
-    const wallet = await Wallet.findOne({ userId });
-
-    if (!wallet) {
-        throw new Error("Wallet not found");
-    }
-
-    if (wallet.balance < amount) {
-        throw new Error("Insufficient balance");
-    }
-
-    wallet.balance -= amount;
-    await wallet.save();
-
-    return {
-        message: "Wallet debited successfully",
-        newBalance: wallet.balance
-    };
-};
-
-// =============================
-// EXPORT SERVICES
-// =============================
-module.exports = {
-    createWallet,
-    getBalance,
-    creditWallet,
-    debitWallet
-};
+module.exports = { createWallet, getBalance, creditWallet, debitWallet };
