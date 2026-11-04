@@ -13,9 +13,9 @@ services:
         value: production
       - key: APP_NAME
         value: AFRICORE
-      - key: MONGO_URI
-        sync: false
       - key: JWT_SECRET
+        generateValue: true
+      - key: MONGO_URI
         sync: false
       - key: FLW_SECRET_KEY
         sync: false
