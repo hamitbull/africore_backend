@@ -10,6 +10,32 @@ class AuthProvider extends ChangeNotifier {
   Map<String, dynamic>? user;
   String? errorMessage;
 
+  Future<void> restoreSession() async {
+    isLoading = true;
+    notifyListeners();
+    try {
+      if (!await _authService.isLoggedIn()) {
+        isLoggedIn = false;
+        user = null;
+        return;
+      }
+      final result = await _authService.getProfile();
+      final profile = result['user'];
+      user = profile is Map
+          ? Map<String, dynamic>.from(profile)
+          : null;
+      isLoggedIn = user != null;
+    } catch (error) {
+      await _authService.logout();
+      isLoggedIn = false;
+      user = null;
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> login({
     required String phone,
     required String password,
@@ -25,7 +51,7 @@ class AuthProvider extends ChangeNotifier {
       user = result['user'] is Map
           ? Map<String, dynamic>.from(result['user'] as Map)
           : null;
-      isLoggedIn = true;
+      isLoggedIn = user != null;
     } catch (error) {
       isLoggedIn = false;
       errorMessage = error.toString().replaceFirst('Exception: ', '');
@@ -54,7 +80,7 @@ class AuthProvider extends ChangeNotifier {
       user = result['user'] is Map
           ? Map<String, dynamic>.from(result['user'] as Map)
           : null;
-      isLoggedIn = result['token'] != null;
+      isLoggedIn = result['token'] != null && user != null;
     } catch (error) {
       isLoggedIn = false;
       errorMessage = error.toString().replaceFirst('Exception: ', '');
