@@ -2,88 +2,43 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 class PushNotificationService {
+  static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  static final FirebaseMessaging _messaging =
-      FirebaseMessaging.instance;
-
-  // =============================
-  // INIT FCM
-  // =============================
   static Future<void> initialize() async {
-
-    // Request permission
     await _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    // Get FCM token
-    String? token =
+    // Do not print device push tokens to CI or device logs.
     await _messaging.getToken();
 
-    debugPrint("FCM TOKEN: $token");
-
-    // Foreground messages
-    FirebaseMessaging.onMessage.listen(
-          (RemoteMessage message) {
-
-        debugPrint(
-            "Foreground Notification: ${message.notification?.title}");
-
-        _showPopup(message);
-      },
-    );
-
-    // Background tap
-    FirebaseMessaging.onMessageOpenedApp
-        .listen((message) {
-
-      debugPrint("Notification clicked");
-
+    FirebaseMessaging.onMessage.listen(_showPopup);
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      debugPrint('AFRICORE notification opened');
     });
   }
 
-  // =============================
-  // SHOW POPUP IN APP
-  // =============================
   static void _showPopup(RemoteMessage message) {
-
-    final context =
-        navigatorKey.currentContext;
-
+    final context = navigatorKey.currentContext;
     if (context == null) return;
 
-    showDialog(
-
+    showDialog<void>(
       context: context,
-
       builder: (_) => AlertDialog(
-
-        title: Text(
-          message.notification?.title ?? "",
-        ),
-
-        content: Text(
-          message.notification?.body ?? "",
-        ),
-
+        title: Text(message.notification?.title ?? 'AFRICORE'),
+        content: Text(message.notification?.body ?? ''),
         actions: [
-
           TextButton(
-            onPressed: () =>
-                Navigator.pop(context),
-
-            child: const Text("OK"),
-          )
-
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
   }
 
-  // Global navigator key
-  static final GlobalKey<NavigatorState>
-  navigatorKey =
-  GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 }

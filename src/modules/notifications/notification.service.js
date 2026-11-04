@@ -1,49 +1,20 @@
-/**
- * ============================================
- * 📩 NOTIFICATION SERVICE
- * ============================================
- */
-
 const Notification = require("../../database/models/Notification");
 
-// =============================
-// CREATE NOTIFICATION
-// =============================
-const sendNotification = async ({
-    userId,
-    title,
-    message,
-    type = "system"
-}) => {
-    return await Notification.create({
-        userId,
-        title,
-        message,
-        type
-    });
+const sendNotification = async ({ userId, title, message, type = "system" }) => {
+    return Notification.create({ userId, title, message, type });
 };
 
-// =============================
-// GET USER NOTIFICATIONS
-// =============================
 const getUserNotifications = async (userId) => {
-    return await Notification.find({ userId })
-        .sort({ createdAt: -1 });
+    return Notification.find({ userId }).sort({ createdAt: -1 }).limit(100);
 };
 
-// =============================
-// MARK AS READ
-// =============================
-const markAsRead = async (notificationId) => {
-    return await Notification.findByIdAndUpdate(
-        notificationId,
+// A user may only mark their own notification as read.
+const markAsRead = async (notificationId, userId) => {
+    return Notification.findOneAndUpdate(
+        { _id: notificationId, userId },
         { isRead: true },
         { new: true }
     );
 };
 
-module.exports = {
-    sendNotification,
-    getUserNotifications,
-    markAsRead
-};
+module.exports = { sendNotification, getUserNotifications, markAsRead };

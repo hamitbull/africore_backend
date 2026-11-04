@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
-
 import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -10,421 +9,88 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    final authProvider =
-    Provider.of<AuthProvider>(context);
-
-    final user =
-    authProvider.user ?? {};
+    final auth = context.watch<AuthProvider>();
+    final user = auth.user ?? <String, dynamic>{};
+    final name = (user['name'] ?? user['fullName'] ?? 'AFRICORE User').toString();
+    final email = (user['email'] ?? 'No email').toString();
+    final phone = (user['phone'] ?? 'No phone number').toString();
+    final afroId = (user['afro_id'] ?? 'Not assigned').toString();
 
     return Scaffold(
-
-      appBar: AppBar(
-        title: const Text("Profile"),
-      ),
-
+      appBar: AppBar(title: const Text('Profile')),
       body: ListView(
-
         padding: const EdgeInsets.all(20),
-
         children: [
-
-          // =============================
-          // PROFILE HEADER
-          // =============================
-          Center(
-
-            child: Column(
-
-              children: [
-
-                CircleAvatar(
-
-                  radius: 50,
-
-                  backgroundColor:
-                  Colors.black,
-
-                  child: Text(
-
-                    user["fullName"] != null
-
-                        ? user["fullName"][0]
-                        : "A",
-
-                    style: const TextStyle(
-
-                      color: Colors.white,
-
-                      fontSize: 35,
-
-                      fontWeight:
-                      FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 15),
-
-                Text(
-
-                  user["fullName"] ??
-                      "AFRICORE User",
-
-                  style: const TextStyle(
-
-                    fontSize: 24,
-
-                    fontWeight:
-                    FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 5),
-
-                Text(
-                  user["email"] ??
-                      "No email",
-                ),
-
-                const SizedBox(height: 5),
-
-                Text(
-                  user["phone"] ??
-                      "No phone",
-                ),
-
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 35),
-
-          // =============================
-          // ACCOUNT SECTION
-          // =============================
-          const Text(
-
-            "Account",
-
-            style: TextStyle(
-
-              fontSize: 20,
-
-              fontWeight:
-              FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 15),
-
-          _ProfileTile(
-
-            icon: Icons.person,
-
-            title: "Edit Profile",
-
-            subtitle:
-            "Update account details",
-
-            onTap: () {},
-
-          ),
-
-          _ProfileTile(
-
-            icon: Icons.lock,
-
-            title: "Security",
-
-            subtitle:
-            "Password & biometrics",
-
-            onTap: () {},
-
-          ),
-
-          _ProfileTile(
-
-            icon: Icons.verified_user,
-
-            title: "KYC Verification",
-
-            subtitle:
-            "Verify your identity",
-
-            onTap: () {},
-
-          ),
-
-          const SizedBox(height: 30),
-
-          // =============================
-          // SETTINGS
-          // =============================
-          const Text(
-
-            "Settings",
-
-            style: TextStyle(
-
-              fontSize: 20,
-
-              fontWeight:
-              FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 15),
-
-          _ProfileTile(
-
-            icon: Icons.notifications,
-
-            title: "Notifications",
-
-            subtitle:
-            "Manage alerts",
-
-            onTap: () {},
-
-          ),
-
-          _ProfileTile(
-
-            icon: Icons.dark_mode,
-
-            title: "Dark Mode",
-
-            subtitle:
-            "Switch app appearance",
-
-            onTap: () {},
-
-          ),
-
-          _ProfileTile(
-
-            icon: Icons.language,
-
-            title: "Language",
-
-            subtitle:
-            "Change app language",
-
-            onTap: () {},
-
-          ),
-
-          const SizedBox(height: 30),
-
-          // =============================
-          // SUPPORT
-          // =============================
-          const Text(
-
-            "Support",
-
-            style: TextStyle(
-
-              fontSize: 20,
-
-              fontWeight:
-              FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 15),
-
-          _ProfileTile(
-
-            icon: Icons.help,
-
-            title: "Help Center",
-
-            subtitle:
-            "FAQs & support",
-
-            onTap: () {},
-
-          ),
-
-          _ProfileTile(
-
-            icon: Icons.info,
-
-            title: "About AFRICORE",
-
-            subtitle:
-            "Platform information",
-
-            onTap: () {},
-
-          ),
-
-          const SizedBox(height: 40),
-
-          // =============================
-          // LOGOUT BUTTON
-          // =============================
-          SizedBox(
-
-            height: 55,
-
-            child: ElevatedButton.icon(
-
-              style:
-              ElevatedButton.styleFrom(
-
-                backgroundColor:
-                Colors.red,
-
-                foregroundColor:
-                Colors.white,
-
-              ),
-
-              onPressed: () async {
-
-                await authProvider.logout();
-
-                if (!context.mounted) return;
-
-                Navigator.pushAndRemoveUntil(
-
-                  context,
-
-                  MaterialPageRoute(
-
-                    builder: (_) =>
-                    const LoginScreen(),
-                  ),
-
-                      (route) => false,
-                );
-              },
-
-              icon: const Icon(Icons.logout),
-
-              label: const Text(
-
-                "Logout",
-
-                style: TextStyle(
-                  fontSize: 18,
-                ),
+          const SizedBox(height: 12),
+          CircleAvatar(
+            radius: 42,
+            backgroundColor: const Color(0xFF12372A),
+            child: Text(
+              name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'A',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-
-          const SizedBox(height: 20),
-
+          const SizedBox(height: 14),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          Text(email, textAlign: TextAlign.center),
+          const SizedBox(height: 28),
+          _ProfileInfoTile(icon: Icons.phone_outlined, title: 'Phone', value: phone),
+          _ProfileInfoTile(icon: Icons.alternate_email, title: 'AFRICORE ID', value: afroId),
+          _ProfileInfoTile(
+            icon: Icons.verified_user_outlined,
+            title: 'KYC status',
+            value: (user['kycStatus'] ?? 'unverified').toString(),
+          ),
+          const SizedBox(height: 28),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+            ),
+            onPressed: auth.isLoading
+                ? null
+                : () async {
+                    await auth.logout();
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (_) => false,
+                    );
+                  },
+            icon: const Icon(Icons.logout),
+            label: const Text('Sign out'),
+          ),
         ],
       ),
     );
   }
 }
 
-// =============================
-// PROFILE TILE
-// =============================
-class _ProfileTile
-    extends StatelessWidget {
+class _ProfileInfoTile extends StatelessWidget {
+  const _ProfileInfoTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
 
   final IconData icon;
-
   final String title;
-
-  final String subtitle;
-
-  final VoidCallback onTap;
-
-  const _ProfileTile({
-
-    required this.icon,
-
-    required this.title,
-
-    required this.subtitle,
-
-    required this.onTap,
-  });
+  final String value;
 
   @override
   Widget build(BuildContext context) {
-
-    return Container(
-
-      margin:
-      const EdgeInsets.only(
-        bottom: 15,
-      ),
-
-      decoration: BoxDecoration(
-
-        color: Colors.white,
-
-        borderRadius:
-        BorderRadius.circular(18),
-
-        boxShadow: [
-
-          BoxShadow(
-
-            color:
-            Colors.black.withOpacity(
-              0.04,
-            ),
-
-            blurRadius: 10,
-
-            offset:
-            const Offset(0, 4),
-          )
-
-        ],
-      ),
-
+    return Card(
       child: ListTile(
-
-        onTap: onTap,
-
-        leading: Container(
-
-          padding:
-          const EdgeInsets.all(10),
-
-          decoration: BoxDecoration(
-
-            color: Colors.black,
-
-            borderRadius:
-            BorderRadius.circular(12),
-
-          ),
-
-          child: Icon(
-            icon,
-            color: Colors.white,
-          ),
-        ),
-
-        title: Text(
-
-          title,
-
-          style: const TextStyle(
-            fontWeight:
-            FontWeight.bold,
-          ),
-        ),
-
-        subtitle: Text(subtitle),
-
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          size: 18,
-        ),
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(value),
       ),
     );
   }

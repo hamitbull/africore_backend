@@ -1,0 +1,30 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
+# Android / Gradle
+.gradle/
+local.properties
+*.jks
+*.keystore
+key.properties
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

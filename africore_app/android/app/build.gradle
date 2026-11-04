@@ -14,8 +14,8 @@ android {
         applicationId = "com.africore.app"
         minSdk = 21
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutterVersionCode.toInteger()
-        versionName = flutterVersionName
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
         multiDexEnabled true
     }
 
@@ -30,8 +30,7 @@ android {
 
     buildTypes {
         release {
-            // Temporary debug signing permits CI APK generation.
-            // Configure a private release keystore before public production distribution.
+            // Temporary CI signing only. Replace with a private release keystore for production.
             signingConfig = signingConfigs.debug
             minifyEnabled false
             shrinkResources false

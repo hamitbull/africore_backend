@@ -1,207 +1,64 @@
-import 'package:dio/dio.dart';
-
-import 'storage_service.dart';
+import '../config/api_endpoints.dart';
+import 'api_service.dart';
 
 class WalletService {
+  final ApiService _api = ApiService.instance;
 
-  final Dio dio = Dio(
-    BaseOptions(
-      baseUrl: "https://yourdomain.com/api",
-      headers: {
-        "Content-Type": "application/json"
-      },
-    ),
-  );
-
-  final StorageService storageService =
-      StorageService();
-
-  // =============================
-  // GET AUTH HEADER
-  // =============================
-  Future<Options> _authOptions() async {
-
-    final token =
-    await storageService.getToken();
-
-    return Options(
-      headers: {
-        "Authorization": "Bearer $token"
-      },
+  Future<Map<String, dynamic>> getWallet() async {
+    final response = await _api.get(
+      ApiEndpoints.wallet,
+      authenticated: true,
     );
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
-  // =============================
-  // GET WALLET
-  // =============================
-  Future<Map<String, dynamic>>
-  getWallet() async {
-
-    try {
-
-      final options =
-      await _authOptions();
-
-      final response = await dio.get(
-        "/wallet",
-        options: options,
-      );
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Failed to fetch wallet",
-      );
-
-    }
-  }
-
-  // =============================
-  // TRANSFER MONEY
-  // =============================
-  Future<Map<String, dynamic>>
-  transfer({
-
+  Future<Map<String, dynamic>> transfer({
     required String receiverAfroId,
-
     required double amount,
-
   }) async {
-
-    try {
-
-      final options =
-      await _authOptions();
-
-      final response = await dio.post(
-
-        "/wallet/transfer",
-
-        data: {
-
-          "receiverAfroId":
-          receiverAfroId,
-
-          "amount":
-          amount
-
-        },
-
-        options: options,
-      );
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Transfer failed",
-      );
-
+    if (amount <= 0 || !amount.isFinite) {
+      throw ArgumentError.value(amount, 'amount', 'Amount must be greater than zero.');
     }
+    final response = await _api.post(
+      ApiEndpoints.transfer,
+      {'receiverAfroId': receiverAfroId.trim(), 'amount': amount},
+      authenticated: true,
+    );
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
-  // =============================
-  // GET TRANSACTION HISTORY
-  // =============================
-  Future<List<dynamic>>
-  getTransactions() async {
-
-    try {
-
-      final options =
-      await _authOptions();
-
-      final response = await dio.get(
-        "/wallet/history",
-        options: options,
-      );
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Failed to fetch transactions",
-      );
-
+  Future<List<dynamic>> getTransactions() async {
+    final response = await _api.get(
+      ApiEndpoints.transactions,
+      authenticated: true,
+    );
+    final data = response.data;
+    if (data is List) return data;
+    if (data is Map && data['transactions'] is List) {
+      return List<dynamic>.from(data['transactions'] as List);
     }
+    if (data is Map && data['data'] is List) {
+      return List<dynamic>.from(data['data'] as List);
+    }
+    return <dynamic>[];
   }
 
-  // =============================
-  // REQUEST PAYOUT
-  // =============================
-  Future<Map<String, dynamic>>
-  requestPayout({
-
+  Future<Map<String, dynamic>> requestPayout({
     required double amount,
-
     required String bankCode,
-
     required String accountNumber,
-
   }) async {
-
-    try {
-
-      final options =
-      await _authOptions();
-
-      final response = await dio.post(
-
-        "/payout/request",
-
-        data: {
-
-          "amount": amount,
-
-          "bankCode": bankCode,
-
-          "accountNumber":
-          accountNumber
-
-        },
-
-        options: options,
-      );
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Payout request failed",
-      );
-
-    }
+    final response = await _api.post(
+      '/payout/request',
+      {
+        'amount': amount,
+        'bankCode': bankCode,
+        'accountNumber': accountNumber,
+      },
+      authenticated: true,
+    );
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
-  // =============================
-  // GET VIRTUAL ACCOUNT
-  // =============================
-  Future<Map<String, dynamic>>
-  getVirtualAccount() async {
-
-    try {
-
-      final options =
-      await _authOptions();
-
-      final response = await dio.get(
-        "/wallet/virtual-account",
-        options: options,
-      );
-
-      return response.data;
-
-    } catch (e) {
-
-      throw Exception(
-        "Failed to fetch account",
-      );
-
-    }
-  }
+  Future<Map<String, dynamic>> getVirtualAccount() => getWallet();
 }

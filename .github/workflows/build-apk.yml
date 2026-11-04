@@ -1,38 +1,51 @@
-name: Build Africore APK
+name: AFRICORE project checks and APK
 
 on:
   push:
     branches:
       - main
-      - build/africore-apk
+      - audit/africore-full-project
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: africore-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  backend-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install backend dependencies
+        run: npm ci
+      - name: Check JavaScript syntax
+        run: npm run check
+
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.22.2"
           channel: stable
           cache: true
-
-      # The repository's Android folder is incomplete. Generate a clean Flutter
-      # Android scaffold, then copy only the missing platform scaffolding so the
-      # existing AFRICORE manifest, Firebase config and app Gradle file survive.
       - name: Restore missing Android platform scaffolding
         working-directory: africore_app
         shell: bash
@@ -66,26 +79,19 @@ jobs:
                   raise SystemExit("Could not locate Kotlin plugin declaration in generated settings.gradle")
               p.write_text("\n".join(out) + "\n")
           PY
-
       - name: Flutter doctor
         run: flutter doctor -v
-
       - name: Install dependencies
         working-directory: africore_app
         run: flutter pub get
-
       - name: Analyze Dart code
         working-directory: africore_app
         run: flutter analyze --no-pub
-        continue-on-error: true
-
       - name: Build release APK
         working-directory: africore_app
-        run: flutter build apk --release
-
+        run: flutter build apk --release --dart-define=API_BASE_URL=${{ secrets.AFRICORE_API_BASE_URL }}
       - name: Verify APK
         run: test -s africore_app/build/app/outputs/flutter-apk/app-release.apk
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

@@ -1,97 +1,41 @@
-/**
- * ============================================
- * 🔥 AFRICORE OS - WEBHOOK CONTROLLER (LEDGER VERSION)
- * ============================================
- * Secure auto-payment processing using Ledger system
- */
-
+const crypto = require("crypto");
 const env = require("../../config/env");
-const Transaction = require("../../database/models/Transaction");
+const { creditWalletWithLedger } = require("../wallet/ledger.service");
 
-// 🔥 IMPORT LEDGER
-const {
-    creditWalletWithLedger
-} = require("../wallet/ledger.service");
-
-// =============================
-// HANDLE FLUTTERWAVE WEBHOOK
-// =============================
 const handleWebhook = async (req, res) => {
     try {
-        const secretHash = env.FLW_SECRET_KEY;
+        const secret = env.FLW_WEBHOOK_SECRET;
         const signature = req.headers["verif-hash"];
-
-        // =============================
-        // VERIFY SIGNATURE
-        // =============================
-        if (!signature || signature !== secretHash) {
-            console.error("❌ Invalid webhook signature");
+        if (!secret || !signature || signature.length !== secret.length ||
+            !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(secret))) {
             return res.status(401).end();
         }
 
-        const payload = req.body;
-
-        // =============================
-        // HANDLE SUCCESSFUL PAYMENT
-        // =============================
-        if (payload.event === "charge.completed") {
-            const data = payload.data;
-
-            if (data.status === "successful") {
-                const userId = data.meta?.userId;
-                const amount = data.amount;
-                const reference = data.tx_ref || data.id;
-
-                if (!userId) {
-                    console.error("❌ Missing userId in metadata");
-                    return res.status(400).end();
-                }
-
-                // =============================
-                // 🔒 PREVENT DUPLICATE CREDIT
-                // =============================
-                const existingTx = await Transaction.findOne({ reference });
-
-                if (existingTx) {
-                    console.log("⚠️ Duplicate transaction ignored:", reference);
-                    return res.status(200).json({
-                        message: "Duplicate transaction ignored"
-                    });
-                }
-
-                // =============================
-                // 💰 USE LEDGER (SAFE CREDIT)
-                // =============================
-                const result = await creditWalletWithLedger({
-                    userId,
-                    amount,
-                    description: "Flutterwave deposit",
-                    provider: "flutterwave"
-                });
-
-                console.log("💰 Ledger credit success:", result);
-
-                return res.status(200).json({
-                    message: "Webhook processed with ledger",
-                    data: result
-                });
-            }
+        const payload = req.body || {};
+        const data = payload.data || {};
+        if (payload.event !== "charge.completed" || data.status !== "successful") {
+            return res.status(200).json({ message: "Event ignored" });
         }
 
-        return res.status(200).json({
-            message: "Event ignored"
+        const userId = data.meta?.userId;
+        const reference = String(data.tx_ref || "");
+        const amount = Number(data.amount);
+        if (!userId || !reference || !Number.isFinite(amount) || amount <= 0) {
+            return res.status(400).json({ message: "Invalid payment payload" });
+        }
+
+        const result = await creditWalletWithLedger({
+            userId,
+            amount,
+            description: "Flutterwave wallet funding",
+            provider: "flutterwave",
+            reference
         });
-
+        return res.status(200).json({ message: result.message, data: result });
     } catch (error) {
-        console.error("❌ WEBHOOK ERROR:", error.message);
-
+        console.error("Flutterwave webhook processing failed:", error.message);
         return res.status(500).end();
     }
 };
 
-// =============================
-// EXPORT
-// =============================
-module.exports = {
-    handleWebhook
-};
+module.exports = { handleWebhook };

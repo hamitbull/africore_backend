@@ -1,102 +1,111 @@
-/**
- * ============================================
- * 💳 AFRICORE OS - PAYMENT SERVICE
- * ============================================
- */
-
 const axios = require("axios");
+const { v4: uuidv4 } = require("uuid");
 const env = require("../../config/env");
+const User = require("../../database/models/User");
 const Wallet = require("../../database/models/Wallet");
+const Transaction = require("../../database/models/Transaction");
+const { creditWalletWithLedger } = require("../wallet/ledger.service");
 
-// =============================
-// INITIATE PAYMENT
-// =============================
-const initiatePayment = async ({ amount, email, tx_ref, userId }) => {
-    if (!amount || !email || !userId) {
-        throw new Error("Amount, email and userId are required");
+const FLW_URL = "https://api.flutterwave.com/v3";
+const flwHeaders = {
+    Authorization: `Bearer ${env.FLW_SECRET_KEY}`,
+    "Content-Type": "application/json"
+};
+
+const initiatePayment = async ({ amount, userId }) => {
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+        throw new Error("Enter a valid positive amount.");
     }
 
-    const payload = {
-        tx_ref: tx_ref,
-        amount: amount,
-        currency: "NGN",
-        redirect_url: env.APP_URL,
-        customer: {
-            email: email
-        },
-        payment_options: "card,banktransfer,ussd",
-        meta: {
-            userId: userId
-        }
-    };
+    const [user, wallet] = await Promise.all([
+        User.findById(userId).select("email"),
+        Wallet.findOne({ userId })
+    ]);
+    if (!user || !user.email) throw new Error("Add a valid email address to your account before funding.");
+    if (!wallet) throw new Error("Wallet not found.");
+
+    const txRef = `AFRO_${uuidv4()}`;
+    await Transaction.create({
+        userId,
+        walletId: wallet._id,
+        type: "credit",
+        amount: numericAmount,
+        status: "pending",
+        reference: txRef,
+        description: "Wallet funding",
+        provider: "flutterwave"
+    });
 
     try {
         const response = await axios.post(
-            "https://api.flutterwave.com/v3/payments",
-            payload,
+            `${FLW_URL}/payments`,
             {
-                headers: {
-                    Authorization: `Bearer ${env.FLW_SECRET_KEY}`
-                }
-            }
+                tx_ref: txRef,
+                amount: numericAmount,
+                currency: "NGN",
+                ...(env.APP_URL ? { redirect_url: env.APP_URL } : {}),
+                customer: { email: user.email },
+                payment_options: "card,banktransfer,ussd",
+                meta: { userId: userId.toString() }
+            },
+            { headers: flwHeaders, timeout: 30000 }
         );
-
-        return response.data;
-
-    } catch (error) {
-        console.error("❌ PAYMENT INIT ERROR:", error.message);
-        throw new Error("Payment initialization failed");
-    }
-};
-
-// =============================
-// VERIFY PAYMENT
-// =============================
-const verifyPayment = async (transactionId, userId) => {
-    try {
-        const response = await axios.get(
-            `https://api.flutterwave.com/v3/transactions/${transactionId}/verify`,
-            {
-                headers: {
-                    Authorization: `Bearer ${env.FLW_SECRET_KEY}`
-                }
-            }
-        );
-
-        const data = response.data.data;
-
-        if (data.status === "successful") {
-            const wallet = await Wallet.findOne({ userId });
-
-            if (!wallet) {
-                throw new Error("Wallet not found");
-            }
-
-            wallet.balance += data.amount;
-            await wallet.save();
-
-            return {
-                message: "Payment verified & wallet credited",
-                amount: data.amount,
-                newBalance: wallet.balance
-            };
-        }
-
         return {
-            message: "Payment not successful",
-            status: data.status
+            message: "Payment initiated",
+            tx_ref: txRef,
+            checkout: response.data
         };
-
     } catch (error) {
-        console.error("❌ VERIFY ERROR:", error.message);
-        throw new Error("Payment verification failed");
+        await Transaction.updateOne(
+            { reference: txRef, userId },
+            { $set: { status: "failed" } }
+        );
+        console.error("Flutterwave payment initiation failed:", error.response?.data || error.message);
+        throw new Error("Payment initialization failed.");
     }
 };
 
-// =============================
-// EXPORT
-// =============================
-module.exports = {
-    initiatePayment,
-    verifyPayment
+const verifyPayment = async (transactionId, userId) => {
+    if (!transactionId) throw new Error("Flutterwave transaction ID is required.");
+
+    const response = await axios.get(
+        `${FLW_URL}/transactions/${encodeURIComponent(transactionId)}/verify`,
+        { headers: flwHeaders, timeout: 30000 }
+    );
+    const data = response.data?.data;
+    if (!data || data.status !== "successful") {
+        return { message: "Payment is not successful.", status: data?.status || "unknown" };
+    }
+    if (String(data.currency).toUpperCase() !== "NGN") {
+        throw new Error("Payment currency does not match NGN.");
+    }
+
+    const reference = String(data.tx_ref || "");
+    const pending = await Transaction.findOne({
+        reference,
+        userId,
+        provider: "flutterwave",
+        type: "credit"
+    });
+    if (!pending) throw new Error("Payment reference was not found for this account.");
+    if (pending.status === "successful") {
+        return { message: "Payment already credited.", duplicate: true, reference };
+    }
+    if (pending.status !== "pending") throw new Error("This payment is no longer pending.");
+
+    const paidAmount = Number(data.amount);
+    if (!Number.isFinite(paidAmount) || Math.abs(paidAmount - Number(pending.amount)) > 0.001) {
+        throw new Error("Verified payment amount does not match the requested amount.");
+    }
+
+    return creditWalletWithLedger({
+        userId,
+        amount: pending.amount,
+        description: "Flutterwave wallet funding",
+        provider: "flutterwave",
+        reference
+    });
 };
+
+module.exports = { initiatePayment, verifyPayment };

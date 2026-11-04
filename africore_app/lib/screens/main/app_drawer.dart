@@ -2,315 +2,88 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
-
-import '../wallet/wallet_screen.dart';
-import '../notifications/notification_screen.dart';
-import '../miniapps/miniapp_store_screen.dart';
-import '../profile/profile_screen.dart';
 import '../kyc/kyc_screen.dart';
-import '../main/app_drawer.dart';
+import '../miniapps/miniapp_store_screen.dart';
+import '../notifications/notification_screen.dart';
+import '../profile/profile_screen.dart';
+import '../wallet/wallet_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
-
-    final authProvider =
-    Provider.of<AuthProvider>(context);
-
-    final user =
-    authProvider.user ?? {};
+    final user = context.watch<AuthProvider>().user ?? <String, dynamic>{};
+    final fullName = user['name'] ?? user['fullName'] ?? 'AFRICORE User';
+    final email = user['email'] ?? 'No email';
 
     return Drawer(
-
       child: Column(
-
         children: [
-
-          // =============================
-          // HEADER
-          // =============================
           UserAccountsDrawerHeader(
-
-            currentAccountPicture:
-            CircleAvatar(
-
-              backgroundColor:
-              Colors.white,
-
+            currentAccountPicture: CircleAvatar(
+              backgroundColor: Colors.white,
               child: Text(
-
-                user["fullName"] != null
-
-                    ? user["fullName"][0]
-
-                    : "A",
-
+                fullName.toString().isNotEmpty
+                    ? fullName.toString().substring(0, 1).toUpperCase()
+                    : 'A',
                 style: const TextStyle(
-
-                  fontSize: 30,
-
-                  fontWeight:
-                  FontWeight.bold,
-
-                  color: Colors.black,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF087F5B),
                 ),
               ),
             ),
-
-            accountName: Text(
-              user["fullName"] ??
-                  "AFRICORE User",
-            ),
-
-            accountEmail: Text(
-              user["email"] ??
-                  "No Email",
-            ),
-
-            decoration: const BoxDecoration(
-              color: Colors.black,
-            ),
+            accountName: Text(fullName.toString()),
+            accountEmail: Text(email.toString()),
+            decoration: const BoxDecoration(color: Color(0xFF087F5B)),
           ),
-
-          // =============================
-          // MENU ITEMS
-          // =============================
           Expanded(
-
             child: ListView(
-
               padding: EdgeInsets.zero,
-
               children: [
-
-                _DrawerItem(
-
-                  icon: Icons.home,
-
-                  title: "Home",
-
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-             drawer: const AppDrawer(),
-                _DrawerItem(
-
-                  icon:
-                  Icons.account_balance_wallet,
-
-                  title: "Wallet",
-
-                  onTap: () {
-
-                    Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder: (_) =>
-                        const WalletScreen(),
-                      ),
-                    );
-                  },
-                ),
-
-                _DrawerItem(
-
-                  icon: Icons.apps,
-
-                  title: "Mini Apps",
-
-                  onTap: () {
-
-                    Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder: (_) =>
-                        const MiniAppStoreScreen(),
-                      ),
-                    );
-                  },
-                ),
-
-                _DrawerItem(
-
-                  icon: Icons.notifications,
-
-                  title: "Notifications",
-
-                  onTap: () {
-
-                    Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder: (_) =>
-                        const NotificationScreen(),
-                      ),
-                    );
-                  },
-                ),
-
-                _DrawerItem(
-
-                  icon: Icons.verified_user,
-
-                  title: "KYC Verification",
-
-                  onTap: () {
-
-                    Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder: (_) =>
-                        const KycScreen(),
-                      ),
-                    );
-                  },
-                ),
-
-                _DrawerItem(
-
-                  icon: Icons.person,
-
-                  title: "Profile",
-
-                  onTap: () {
-
-                    Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder: (_) =>
-                        const ProfileScreen(),
-                      ),
-                    );
-                  },
-                ),
-
-                const Divider(),
-
-                _DrawerItem(
-
-                  icon: Icons.settings,
-
-                  title: "Settings",
-
-                  onTap: () {},
-                ),
-
-                _DrawerItem(
-
-                  icon: Icons.support_agent,
-
-                  title: "Support",
-
-                  onTap: () {},
-                ),
-
-                _DrawerItem(
-
-                  icon: Icons.info,
-
-                  title: "About AFRICORE",
-
-                  onTap: () {},
-                ),
-
+                _item(context, Icons.home_outlined, 'Home'),
+                _item(context, Icons.account_balance_wallet_outlined, 'Wallet',
+                    const WalletScreen()),
+                _item(context, Icons.apps_outlined, 'Mini Apps',
+                    const MiniAppStoreScreen()),
+                _item(context, Icons.notifications_outlined, 'Notifications',
+                    const NotificationScreen()),
+                _item(context, Icons.verified_user_outlined, 'KYC',
+                    const KycScreen()),
+                _item(context, Icons.person_outline, 'Profile',
+                    const ProfileScreen()),
               ],
             ),
           ),
-
-          // =============================
-          // FOOTER
-          // =============================
-          Container(
-
-            padding: const EdgeInsets.all(20),
-
-            child: const Column(
-
-              children: [
-
-                Divider(),
-
-                SizedBox(height: 10),
-
-                Text(
-                  "AFRICORE v1.0.0",
-                ),
-
-                SizedBox(height: 5),
-
-                Text(
-                  "Powered by AFRICORE OS",
-                  style: TextStyle(
-                    color: Colors.grey,
-                  ),
-                )
-
-              ],
-            ),
-          )
-
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: Text('AFRICORE OS • v1.0.0'),
+          ),
         ],
       ),
     );
   }
-}
 
-// =============================
-// DRAWER ITEM
-// =============================
-class _DrawerItem
-    extends StatelessWidget {
-
-  final IconData icon;
-
-  final String title;
-
-  final VoidCallback onTap;
-
-  const _DrawerItem({
-
-    required this.icon,
-
-    required this.title,
-
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-
+  Widget _item(
+    BuildContext context,
+    IconData icon,
+    String title, [
+    Widget? destination,
+  ]) {
     return ListTile(
-
       leading: Icon(icon),
-
-      title: Text(
-        title,
-      ),
-
-      trailing: const Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-      ),
-
-      onTap: onTap,
+      title: Text(title),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        Navigator.pop(context);
+        if (destination != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => destination),
+          );
+        }
+      },
     );
   }
 }
