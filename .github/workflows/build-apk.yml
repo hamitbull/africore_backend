@@ -1,4 +1,4 @@
-name: Build Africore APK
+name: AFRICORE project checks and APK
 
 on:
   push:
@@ -11,6 +11,21 @@ permissions:
   contents: read
 
 jobs:
+  backend-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install backend dependencies
+        run: npm ci
+      - name: Check JavaScript syntax
+        run: npm run check
+
   build:
     runs-on: ubuntu-latest
     steps:
