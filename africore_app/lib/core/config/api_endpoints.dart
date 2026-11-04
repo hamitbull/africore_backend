@@ -11,7 +11,7 @@ class ApiEndpoints {
   static const String profile = '/auth/me';
   static const String wallet = '/wallet/me';
   static const String transfer = '/transfer';
-  static const String transactions = '/transactions';
+  static const String transactions = '/transactions/me';
   static const String notifications = '/notifications';
   static const String miniapps = '/miniapps';
   static const String kyc = '/kyc';
