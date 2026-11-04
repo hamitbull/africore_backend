@@ -1,56 +1,28 @@
-/**
- * ============================================
- * ⚙️ AFRICORE OS - ENV CONFIG MANAGER
- * ============================================
- * Loads and validates environment variables
- */
-
 require("dotenv").config();
 
-// =============================
-// REQUIRED VARIABLES
-// =============================
-const requiredEnv = [
-    "PORT",
-    "MONGO_URI",
-    "JWT_SECRET",
-    "FLW_SECRET_KEY"
-];
-
-// =============================
-// VALIDATE ENV VARIABLES
-// =============================
-requiredEnv.forEach((key) => {
+const requiredEnv = ["PORT", "MONGO_URI", "JWT_SECRET", "FLW_SECRET_KEY"];
+for (const key of requiredEnv) {
     if (!process.env[key]) {
-        console.error(`🔴 Missing ENV variable: ${key}`);
+        console.error(`Missing required environment variable: ${key}`);
         process.exit(1);
     }
-});
+}
 
-// =============================
-// EXPORT CLEAN CONFIG
-// =============================
-const env = {
-    PORT: process.env.PORT,
+if (String(process.env.JWT_SECRET).length < 32) {
+    console.error("JWT_SECRET must contain at least 32 characters.");
+    process.exit(1);
+}
+
+module.exports = {
+    PORT: process.env.PORT || 5000,
     NODE_ENV: process.env.NODE_ENV || "development",
-
-    // Database
     MONGO_URI: process.env.MONGO_URI,
-
-    // Auth
     JWT_SECRET: process.env.JWT_SECRET,
-
-    // Payments
     FLW_SECRET_KEY: process.env.FLW_SECRET_KEY,
     FLW_PUBLIC_KEY: process.env.FLW_PUBLIC_KEY,
     FLW_ENCRYPTION_KEY: process.env.FLW_ENCRYPTION_KEY,
-
-    // Notifications
+    FLW_WEBHOOK_SECRET: process.env.FLW_WEBHOOK_SECRET || "",
     FCM_SERVER_KEY: process.env.FCM_SERVER_KEY,
-
-    // App
-    APP_NAME: process.env.APP_NAME,
-    APP_URL: process.env.APP_URL
+    APP_NAME: process.env.APP_NAME || "AFRICORE",
+    APP_URL: process.env.APP_URL || ""
 };
-
-module.exports = env;
