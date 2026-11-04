@@ -1,49 +1,22 @@
-import 'package:flutter/material.dart';
+import '../config/api_endpoints.dart';
+import 'api_service.dart';
 
-import '../core/services/notification_service.dart';
+class NotificationService {
+  final ApiService _api = ApiService.instance;
 
-class NotificationProvider
-    extends ChangeNotifier {
-
-  final NotificationService service =
-  NotificationService();
-
-  bool isLoading = false;
-
-  List notifications = [];
-
-  // =============================
-  // LOAD NOTIFICATIONS
-  // =============================
-  Future<void> loadNotifications() async {
-
-    isLoading = true;
-    notifyListeners();
-
-    try {
-
-      final data =
-      await service.getNotifications();
-
-      notifications = data;
-
-    } catch (e) {
-
-      debugPrint(e.toString());
-
+  Future<List<dynamic>> getNotifications() async {
+    final response = await _api.get(
+      ApiEndpoints.notifications,
+      authenticated: true,
+    );
+    final data = response.data;
+    if (data is List) return data;
+    if (data is Map && data['notifications'] is List) {
+      return List<dynamic>.from(data['notifications'] as List);
     }
-
-    isLoading = false;
-    notifyListeners();
-  }
-
-  // =============================
-  // ADD REAL-TIME NOTIFICATION
-  // =============================
-  void addNotification(Map data) {
-
-    notifications.insert(0, data);
-
-    notifyListeners();
+    if (data is Map && data['data'] is List) {
+      return List<dynamic>.from(data['data'] as List);
+    }
+    return <dynamic>[];
   }
 }
