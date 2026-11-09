@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../main/app_drawer.dart';
 import '../performance/virtual_core_screen.dart';
+import '../../widgets/africore_logo.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,7 +11,13 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text("AFRICORE"),
+        title: const Row(
+          children: [
+            AfricoreLogo(size: 34),
+            SizedBox(width: 10),
+            Text('AFRICORE', style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.1)),
+          ],
+        ),
         leading: Builder(builder: (context) => IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => Scaffold.of(context).openDrawer(),
@@ -22,15 +29,19 @@ class HomeScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.black,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF071321), Color(0xFF123B4A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Wallet Balance", style: TextStyle(color: Colors.white70)),
+                Text('Wallet Balance', style: TextStyle(color: Colors.white70)),
                 SizedBox(height: 10),
-                Text("₦0.00", style: TextStyle(
+                Text('₦0.00', style: TextStyle(
                   color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold,
                 )),
               ],
@@ -46,9 +57,9 @@ class HomeScreen extends StatelessWidget {
                 backgroundColor: Color(0xFF00BFA6),
                 child: Icon(Icons.memory, color: Colors.black),
               ),
-              title: const Text("ASHIRU VIRTUAL CORE X",
+              title: const Text('ASHIRU VIRTUAL CORE X',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              subtitle: const Text("Smart performance & memory intelligence",
+              subtitle: const Text('Smart performance & memory intelligence',
                 style: TextStyle(color: Colors.white70)),
               trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white),
               onTap: () => Navigator.push(context,
@@ -63,10 +74,10 @@ class HomeScreen extends StatelessWidget {
             crossAxisSpacing: 15,
             mainAxisSpacing: 15,
             children: const [
-              _HomeCard(title: "Transfer", icon: Icons.send),
-              _HomeCard(title: "Mini Apps", icon: Icons.apps),
-              _HomeCard(title: "Notifications", icon: Icons.notifications),
-              _HomeCard(title: "KYC", icon: Icons.verified_user),
+              _HomeCard(title: 'Transfer', icon: Icons.send),
+              _HomeCard(title: 'Mini Apps', icon: Icons.apps),
+              _HomeCard(title: 'Notifications', icon: Icons.notifications),
+              _HomeCard(title: 'KYC', icon: Icons.verified_user),
             ],
           ),
         ],
@@ -84,6 +95,7 @@ class _HomeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black12),
       ),
