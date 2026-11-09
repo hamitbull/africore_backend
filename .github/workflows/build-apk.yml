@@ -49,11 +49,12 @@ jobs:
               out = []
               inserted = False
               for line in lines:
-                  out.append(line)
                   if marker in line and not inserted:
                       out.append('    id "org.jetbrains.kotlin.android" version "1.8.22" apply false')
                       out.append('    id "com.google.gms.google-services" version "4.4.2" apply false')
                       inserted = True
+                  else:
+                      out.append(line)
               if not inserted:
                   raise SystemExit("Kotlin plugin declaration missing in generated settings.gradle")
               p.write_text("\n".join(out) + "\n")
