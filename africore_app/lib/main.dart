@@ -11,28 +11,26 @@ import 'screens/main/bottom_nav_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase is optional for the core app shell. A missing or invalid
-  // google-services configuration must never leave the user on a white screen.
-  var firebaseReady = false;
+  // Show the actual app immediately. Firebase and push notifications are
+  // optional services and must not block the first frame.
+  runApp(const AfricoreApp());
+  _initializeOptionalServices();
+}
+
+Future<void> _initializeOptionalServices() async {
   try {
     await Firebase.initializeApp();
-    firebaseReady = true;
     debugPrint('AFRICORE: Firebase initialized');
-  } catch (error, stackTrace) {
-    debugPrint('AFRICORE: Firebase unavailable: $error');
-    debugPrintStack(stackTrace: stackTrace);
-  }
-
-  if (firebaseReady) {
     try {
       await PushNotificationService.initialize();
     } catch (error, stackTrace) {
       debugPrint('AFRICORE: Push notifications disabled: $error');
       debugPrintStack(stackTrace: stackTrace);
     }
+  } catch (error, stackTrace) {
+    debugPrint('AFRICORE: Firebase unavailable; core app remains available: $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
-
-  runApp(const AfricoreApp());
 }
 
 class AfricoreApp extends StatelessWidget {
