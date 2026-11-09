@@ -20,14 +20,18 @@ class AfricoreLogo extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00BFA6).withValues(alpha: 0.22),
+            color: const Color(0xFF00BFA6).withOpacity(0.22),
             blurRadius: size * 0.22,
             offset: Offset(0, size * 0.07),
           ),
         ],
       ),
       child: Center(
-        child: Icon(Icons.public_rounded, size: size * 0.62, color: const Color(0xFF071321)),
+        child: Icon(
+          Icons.public_rounded,
+          size: size * 0.62,
+          color: const Color(0xFF071321),
+        ),
       ),
     );
 
