@@ -1,4 +1,4 @@
-name: Build Africore APK
+name: Build AFRICORE APK
 
 on:
   push:
@@ -30,9 +30,6 @@ jobs:
           channel: stable
           cache: true
 
-      # The repository's Android folder is incomplete. Generate a clean Flutter
-      # Android scaffold, then copy only the missing platform scaffolding so the
-      # existing AFRICORE manifest, Firebase config and app Gradle file survive.
       - name: Restore missing Android platform scaffolding
         working-directory: africore_app
         shell: bash
@@ -45,7 +42,10 @@ jobs:
           cp -R /tmp/africore_android_template/android/gradle android/gradle
           cp /tmp/africore_android_template/android/build.gradle android/build.gradle
           mkdir -p android/app/src/main
-          cp -R /tmp/africore_android_template/android/app/src/main/kotlin android/app/src/main/
+          if [ ! -f android/app/src/main/kotlin/com/africore/app/MainActivity.kt ]; then
+            mkdir -p android/app/src/main/kotlin
+            cp -R /tmp/africore_android_template/android/app/src/main/kotlin/* android/app/src/main/kotlin/
+          fi
           cp -R /tmp/africore_android_template/android/app/src/main/res android/app/src/main/
           chmod +x android/gradlew
           python3 - <<'PY'
@@ -64,7 +64,7 @@ jobs:
                       inserted = True
               if not inserted:
                   raise SystemExit("Could not locate Kotlin plugin declaration in generated settings.gradle")
-              p.write_text("\n".join(out) + "\n")
+              p.write_text("\\n".join(out) + "\\n")
           PY
 
       - name: Flutter doctor
