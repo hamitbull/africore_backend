@@ -2,9 +2,7 @@ name: Build AFRICORE APK
 
 on:
   push:
-    branches:
-      - main
-      - build/africore-apk
+    branches: [main, build/africore-apk]
   workflow_dispatch:
 
 permissions:
@@ -30,7 +28,7 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Restore missing Android platform scaffolding
+      - name: Restore Android Gradle wrapper and settings
         working-directory: africore_app
         shell: bash
         run: |
@@ -40,13 +38,6 @@ jobs:
           cp /tmp/africore_android_template/android/gradlew android/gradlew
           cp /tmp/africore_android_template/android/gradlew.bat android/gradlew.bat
           cp -R /tmp/africore_android_template/android/gradle android/gradle
-          cp /tmp/africore_android_template/android/build.gradle android/build.gradle
-          mkdir -p android/app/src/main
-          if [ ! -f android/app/src/main/kotlin/com/africore/app/MainActivity.kt ]; then
-            mkdir -p android/app/src/main/kotlin
-            cp -R /tmp/africore_android_template/android/app/src/main/kotlin/* android/app/src/main/kotlin/
-          fi
-          cp -R /tmp/africore_android_template/android/app/src/main/res android/app/src/main/
           chmod +x android/gradlew
           python3 - <<'PY'
           from pathlib import Path
@@ -63,8 +54,8 @@ jobs:
                       out.append('    id "com.google.gms.google-services" version "4.4.2" apply false')
                       inserted = True
               if not inserted:
-                  raise SystemExit("Could not locate Kotlin plugin declaration in generated settings.gradle")
-              p.write_text("\\n".join(out) + "\\n")
+                  raise SystemExit("Kotlin plugin declaration missing in generated settings.gradle")
+              p.write_text("\n".join(out) + "\n")
           PY
 
       - name: Flutter doctor
