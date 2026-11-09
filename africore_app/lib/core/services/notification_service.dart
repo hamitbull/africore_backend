@@ -1,49 +1,24 @@
-import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'storage_service.dart';
 
-import '../core/services/notification_service.dart';
+class NotificationService {
+  final Dio _dio = Dio(BaseOptions(
+    baseUrl: "https://yourdomain.com/api",
+    headers: const {"Content-Type": "application/json"},
+  ));
+  final StorageService _storage = StorageService();
 
-class NotificationProvider
-    extends ChangeNotifier {
-
-  final NotificationService service =
-  NotificationService();
-
-  bool isLoading = false;
-
-  List notifications = [];
-
-  // =============================
-  // LOAD NOTIFICATIONS
-  // =============================
-  Future<void> loadNotifications() async {
-
-    isLoading = true;
-    notifyListeners();
-
-    try {
-
-      final data =
-      await service.getNotifications();
-
-      notifications = data;
-
-    } catch (e) {
-
-      debugPrint(e.toString());
-
+  Future<List<dynamic>> getNotifications() async {
+    final token = await _storage.getToken();
+    final response = await _dio.get(
+      "/notifications",
+      options: Options(headers: {"Authorization": "Bearer $token"}),
+    );
+    final data = response.data;
+    if (data is List) return data;
+    if (data is Map && data["notifications"] is List) {
+      return data["notifications"] as List<dynamic>;
     }
-
-    isLoading = false;
-    notifyListeners();
-  }
-
-  // =============================
-  // ADD REAL-TIME NOTIFICATION
-  // =============================
-  void addNotification(Map data) {
-
-    notifications.insert(0, data);
-
-    notifyListeners();
+    return <dynamic>[];
   }
 }
