@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../core/services/biometric_service.dart';
+import '../../widgets/africore_logo.dart';
 import '../main/bottom_nav_screen.dart';
 import 'register_screen.dart';
 
@@ -38,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const BottomNavScreen()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login failed. Check your details.")),
+        const SnackBar(content: Text('Login failed. Check your details.')),
       );
     }
   }
@@ -48,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     if (!available) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Biometric login is not available.")),
+        const SnackBar(content: Text('Biometric login is not available.')),
       );
       return;
     }
@@ -59,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const BottomNavScreen()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Authentication failed.")),
+        const SnackBar(content: Text('Authentication failed.')),
       );
     }
   }
@@ -75,17 +76,19 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 42),
-              const Text("Welcome Back 👋",
+              const Center(child: AfricoreLogo(size: 86, showWordmark: true)),
+              const SizedBox(height: 28),
+              const Text('Welcome Back 👋',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text("Login to continue using AFRICORE",
+              const Text('Login to continue using AFRICORE',
                 style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 42),
               TextField(
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
-                  labelText: "Phone Number",
+                  labelText: 'Phone Number',
                   prefixIcon: Icon(Icons.phone),
                   border: OutlineInputBorder(),
                 ),
@@ -95,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: passwordController,
                 obscureText: obscurePassword,
                 decoration: InputDecoration(
-                  labelText: "Password",
+                  labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock),
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
@@ -111,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: auth.isLoading ? null : login,
                   child: auth.isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Login"),
+                    : const Text('Login'),
                 ),
               ),
               const SizedBox(height: 20),
@@ -121,15 +124,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     icon: const Icon(Icons.fingerprint),
                     iconSize: 64,
                     onPressed: biometricLogin,
-                    tooltip: "Login with biometrics",
+                    tooltip: 'Login with biometrics',
                   ),
-                  const Text("Use fingerprint / device biometrics"),
+                  const Text('Use fingerprint / device biometrics'),
                 ]),
               ),
               TextButton(
                 onPressed: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const RegisterScreen())),
-                child: const Text("Create an AFRICORE account"),
+                child: const Text('Create an AFRICORE account'),
               ),
             ],
           ),
