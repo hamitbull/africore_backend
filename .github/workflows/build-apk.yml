@@ -51,6 +51,7 @@ jobs:
               for line in lines:
                   out.append(line)
                   if marker in line and not inserted:
+                      out.append('    id "org.jetbrains.kotlin.android" version "1.8.22" apply false')
                       out.append('    id "com.google.gms.google-services" version "4.4.2" apply false')
                       inserted = True
               if not inserted:
@@ -68,7 +69,6 @@ jobs:
       - name: Analyze Dart code
         working-directory: africore_app
         run: flutter analyze --no-pub
-        continue-on-error: true
 
       - name: Build release APK
         working-directory: africore_app
