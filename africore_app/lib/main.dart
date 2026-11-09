@@ -10,8 +10,28 @@ import 'screens/main/bottom_nav_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await PushNotificationService.initialize();
+
+  // Firebase is optional for the core app shell. A missing or invalid
+  // google-services configuration must never leave the user on a white screen.
+  var firebaseReady = false;
+  try {
+    await Firebase.initializeApp();
+    firebaseReady = true;
+    debugPrint('AFRICORE: Firebase initialized');
+  } catch (error, stackTrace) {
+    debugPrint('AFRICORE: Firebase unavailable: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  if (firebaseReady) {
+    try {
+      await PushNotificationService.initialize();
+    } catch (error, stackTrace) {
+      debugPrint('AFRICORE: Push notifications disabled: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
   runApp(const AfricoreApp());
 }
 
@@ -28,16 +48,20 @@ class AfricoreApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: "AFRICORE",
+        title: 'AFRICORE',
         navigatorKey: PushNotificationService.navigatorKey,
         theme: ThemeData(
-          primarySwatch: Colors.blue,
-          scaffoldBackgroundColor: Colors.white,
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF00BFA6),
+            brightness: Brightness.light,
+          ),
+          scaffoldBackgroundColor: const Color(0xFFF5F8FA),
           appBarTheme: const AppBarTheme(
             elevation: 0,
             backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            centerTitle: true,
+            foregroundColor: Color(0xFF071321),
+            centerTitle: false,
           ),
         ),
         home: const BottomNavScreen(),
