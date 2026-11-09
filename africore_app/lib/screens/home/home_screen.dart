@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main/app_drawer.dart';
 import '../performance/virtual_core_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -7,7 +8,14 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("AFRICORE")),
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        title: const Text("AFRICORE"),
+        leading: Builder(builder: (context) => IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        )),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
