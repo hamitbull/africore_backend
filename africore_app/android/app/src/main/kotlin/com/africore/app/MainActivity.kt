@@ -64,12 +64,18 @@ class MainActivity : FlutterActivity() {
         )
     }
 
-    private fun readCpuCounters(): Pair<Long, Long>? = try {
-        val line = File("/proc/stat").useLines { it.firstOrNull { row -> row.startsWith("cpu ") } } ?: return null
-        val values = line.trim().split(Regex("\\s+")).drop(1).map { it.toLong() }
-        if (values.size < 4) return null
-        Pair(values.sum(), values[3] + (values.getOrNull(4) ?: 0L))
-    } catch (_: Exception) { null }
+    private fun readCpuCounters(): Pair<Long, Long>? {
+        return try {
+            val line = File("/proc/stat").useLines { lines ->
+                lines.firstOrNull { row -> row.startsWith("cpu ") }
+            } ?: return null
+            val values = line.trim().split(Regex("\\s+")).drop(1).map { it.toLong() }
+            if (values.size < 4) return null
+            Pair(values.sum(), values[3] + (values.getOrNull(4) ?: 0L))
+        } catch (_: Exception) {
+            null
+        }
+    }
 
     private fun formatBytes(bytes: Long): String {
         if (bytes <= 0L) return "Unavailable"
